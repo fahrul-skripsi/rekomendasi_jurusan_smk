@@ -127,4 +127,4 @@ if st.sidebar.button("🎯 Proses Rekomendasi"):
 # FOOTER
 # =========================
 st.write("---")
-st.caption("© 2026 Sistem Rekomendasi Jurusan SMK - Machine Learning Project")
+st.caption("© 2026 - Rizki Nur Fahrul - Sistem Rekomendasi Jurusan SMK")
