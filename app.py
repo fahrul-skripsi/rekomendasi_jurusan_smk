@@ -11,6 +11,19 @@ import streamlit as st
 import joblib
 import numpy as np
 
+
+# 🔥 HEADER (TARUH DI PALING ATAS)
+st.set_page_config(
+    page_title="Rekomendasi Jurusan SMK",
+    layout="centered"
+)
+
+st.markdown("""
+# 🎓 Sistem Rekomendasi Jurusan SMK Pada Siswa SMPN 279 Jakarta Utara
+Aplikasi ini membantu menentukan jurusan SMK berdasarkan nilai akademik siswa.
+""")
+
+
 # =========================
 # LOAD MODEL
 # =========================
