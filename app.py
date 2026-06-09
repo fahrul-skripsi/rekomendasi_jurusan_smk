@@ -1,25 +1,24 @@
 import streamlit as st
 import joblib
 import numpy as np
+import pandas as pd
 
 # =========================
-# CONFIG PAGE
+# CONFIG
 # =========================
 st.set_page_config(
-    page_title="Rekomendasi Jurusan SMK Di SMPN 279 Jakarta Utara",
+    page_title="Dashboard Rekomendasi Jurusan SMK Di SMPN 279 Jakarta Utara",
     page_icon="🎓",
-    layout="centered"
+    layout="wide"
 )
 
 # =========================
 # HEADER
 # =========================
 st.markdown("""
-<div style='text-align: center;'>
-    <h1>🎓 Sistem Rekomendasi Jurusan SMK di SMPN 279 Jakarta Utara</h1>
-    <p>Menentukan jurusan terbaik berdasarkan nilai akademik siswa</p>
-</div>
-""", unsafe_allow_html=True)
+# 🎓 Dashboard Rekomendasi Jurusan SMK Di SMPN 279 Jakarta Utara
+Sistem Pendukung Keputusan berbasis Machine Learning (Random Forest)
+""")
 
 st.write("---")
 
@@ -31,69 +30,101 @@ scaler = joblib.load('scaler.pkl')
 le = joblib.load('label_encoder.pkl')
 
 # =========================
-# MAPPING + DESKRIPSI
+# MAPPING + ANALISIS
 # =========================
 mapping_jurusan = {
-    'AKL': 'AKL (Akuntansi dan Keuangan Lembaga)',
-    'OTKP': 'OTKP (Otomatisasi dan Tata Kelola Perkantoran)',
-    'RPL': 'RPL (Rekayasa Perangkat Lunak)',
-    'TKJ': 'TKJ (Teknik Komputer dan Jaringan)',
-    'TKR': 'TKR (Teknik Kendaraan Ringan)'
-}
-
-deskripsi = {
-    'AKL': 'Cocok untuk siswa yang suka akuntansi dan keuangan.',
-    'OTKP': 'Cocok untuk administrasi dan perkantoran.',
-    'RPL': 'Cocok untuk siswa yang tertarik pada coding dan software.',
-    'TKJ': 'Cocok untuk jaringan komputer dan IT.',
-    'TKR': 'Cocok untuk otomotif dan mesin.'
+    'AKL': 'Akuntansi dan Keuangan Lembaga',
+    'OTKP': 'Otomatisasi dan Tata Kelola Perkantoran',
+    'RPL': 'Rekayasa Perangkat Lunak',
+    'TKJ': 'Teknik Komputer dan Jaringan',
+    'TKR': 'Teknik Kendaraan Ringan'
 }
 
 # =========================
-# INPUT (PAKAI KOLOM BIAR RAPI)
+# SIDEBAR INPUT
 # =========================
-st.subheader("📊 Input Nilai Siswa")
+st.sidebar.header("📌 Input Nilai Siswa")
 
-col1, col2 = st.columns(2)
-
-with col1:
-    mtk = st.number_input("Matematika", 0, 100)
-    ipa = st.number_input("IPA", 0, 100)
-
-with col2:
-    ips = st.number_input("IPS", 0, 100)
-    bhs = st.number_input("Bahasa", 0, 100)
-
-st.write("")
+mtk = st.sidebar.number_input("Matematika", 0, 100)
+ipa = st.sidebar.number_input("IPA", 0, 100)
+ips = st.sidebar.number_input("IPS", 0, 100)
+bhs = st.sidebar.number_input("Bahasa", 0, 100)
 
 # =========================
-# BUTTON
+# PREDIKSI
 # =========================
-if st.button("🎯 Prediksi Jurusan"):
+if st.sidebar.button("🎯 Proses Rekomendasi"):
 
-    with st.spinner("⏳ Sedang menganalisis..."):
-        
-        data = np.array([[mtk, ipa, ips, bhs]])
-        data_scaled = scaler.transform(data)
-        prediksi = model.predict(data_scaled)
-        hasil = le.inverse_transform(prediksi)
+    data = np.array([[mtk, ipa, ips, bhs]])
+    data_scaled = scaler.transform(data)
 
-        jurusan = hasil[0]
-        jurusan_lengkap = mapping_jurusan[jurusan]
+    pred = model.predict(data_scaled)
+    hasil = le.inverse_transform(pred)[0]
+
+    jurusan = mapping_jurusan[hasil]
 
     # =========================
-    # OUTPUT (CARD STYLE)
+    # MAIN DASHBOARD
     # =========================
-    st.success("✅ Prediksi selesai!")
 
-    st.markdown(f"""
-    <div style="
-        background-color:#f0f2f6;
-        padding:20px;
-        border-radius:10px;
-        text-align:center;
-    ">
-        <h2>🎯 {jurusan_lengkap}</h2>
-        <p>{deskripsi[jurusan]}</p>
-    </div>
-    """, unsafe_allow_html=True)
+    col1, col2, col3 = st.columns(3)
+
+    with col1:
+        st.metric("Jurusan Rekomendasi", hasil)
+
+    with col2:
+        st.metric("Nama Jurusan", jurusan)
+
+    with col3:
+        st.metric("Status", "Selesai")
+
+    st.write("---")
+
+    # =========================
+    # GRAFIK NILAI
+    # =========================
+    st.subheader("📊 Visualisasi Nilai Siswa")
+
+    df_chart = pd.DataFrame({
+        "Mata Pelajaran": ["MTK", "IPA", "IPS", "BHS"],
+        "Nilai": [mtk, ipa, ips, bhs]
+    })
+
+    st.bar_chart(df_chart.set_index("Mata Pelajaran"))
+
+    st.write("---")
+
+    # =========================
+    # ANALISIS CERDAS
+    # =========================
+    st.subheader("🧠 Analisis Sistem")
+
+    nilai_dict = {
+        "Matematika": mtk,
+        "IPA": ipa,
+        "IPS": ips,
+        "Bahasa": bhs
+    }
+
+    tertinggi = max(nilai_dict, key=nilai_dict.get)
+
+    if tertinggi in ["Matematika", "IPA"]:
+        tipe = "Sains & Teknologi"
+    elif tertinggi == "IPS":
+        tipe = "Sosial & Bisnis"
+    else:
+        tipe = "Bahasa & Komunikasi"
+
+    st.info(f"""
+    🔍 Mata pelajaran tertinggi: **{tertinggi}**  
+    🎯 Tipe siswa: **{tipe}**  
+    🎓 Rekomendasi jurusan: **{jurusan}**
+    """)
+
+    st.success("✔ Analisis selesai dilakukan oleh sistem Machine Learning")
+
+# =========================
+# FOOTER
+# =========================
+st.write("---")
+st.caption("© 2026 Sistem Rekomendasi Jurusan SMK - Machine Learning Project")
